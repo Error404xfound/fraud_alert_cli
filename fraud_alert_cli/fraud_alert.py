@@ -76,6 +76,11 @@ def prompt_transactions(expected_count):
         try:
             raw = get_input("\nTransactions: ")
             transactions = [float(x.strip()) for x in raw.split(",") if x.strip()] # Only include non-empty entries after stripping whitespace.
+
+            if any(x <= 0 for x in transactions):
+                print("All transaction amounts must be greater than 0. Please try again.")
+                continue
+
             if len(transactions) == expected_count:
                 return transactions
             print(f"You entered {len(transactions)} transaction(s). Please enter exactly {expected_count}.")
@@ -166,8 +171,8 @@ def main():
 
     alerts, alerted_transactions, alerted_details, overall_median, overall_sigma  = detect_suspicious_transactions(transactions, t)
     threshold_amount = threshold_to_zscore(t, overall_median, overall_sigma)
-    show_graph(transactions, alerted_details, threshold_amount)
     print_results(alerts, alerted_transactions, alerted_details)
+    show_graph(transactions, alerted_details, threshold_amount)
 
 
 if __name__ == "__main__":
