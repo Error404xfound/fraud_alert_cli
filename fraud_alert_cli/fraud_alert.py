@@ -38,17 +38,17 @@ def show_graph(transactions, alerted_details, threshold_amount):
     plt.grid(True, linestyle=':', alpha=0.6)
     plt.show()
 
-def threshold_to_zscore(threshold, overall_mean, overall_sigma):
-    """Convert a z-score threshold to the corresponding transaction amount."""
-    threshold_amount = overall_mean + threshold * overall_sigma
+def threshold_to_zscore(threshold, overall_median, overall_sigma):
+    """Convert a robust z-score threshold to the corresponding transaction amount."""
+    threshold_amount = overall_median + threshold * overall_sigma
     return threshold_amount     
     
-def check_zscore(amount, mean, sigma, threshold):
+def check_zscore(amount, median, sigma, threshold):
     """Flag transactions whose z-score exceeds the selected sensitivity."""
     if sigma == 0:
         return False, None, None # Avoid division by zero if all transactions are identical.
 
-    z = (amount - mean) / sigma
+    z = (amount - median) / sigma
     if z > threshold:
         return True, z, f"Z-score={z:.2f} > threshold={threshold:.2f}"
 
@@ -93,7 +93,7 @@ def detect_suspicious_transactions(transactions, threshold):
     alerted_details = []
 
     # Global baseline for z-score checks.
-    overall_mean = statistics.mean(transactions)
+    overall_median = statistics.median(transactions)
     overall_sigma = statistics.pstdev(transactions)
 
     for i, transaction in enumerate(transactions):
@@ -102,7 +102,7 @@ def detect_suspicious_transactions(transactions, threshold):
         if check_rule_based(transaction):
             reasons.append(f"Rule: amount ({transaction:.2f}) > {RULE_THRESHOLD:.0f}")
 
-        z_flagged, z_value, z_reason = check_zscore(transaction, overall_mean, overall_sigma, threshold)
+        z_flagged, z_value, z_reason = check_zscore(transaction, overall_median, overall_sigma, threshold)
         if z_flagged:
             reasons.append(z_reason)
 
@@ -112,7 +112,7 @@ def detect_suspicious_transactions(transactions, threshold):
             alerted_transactions.append(txn_number)
             alerted_details.append((txn_number, transaction, reasons))
 
-    return alerts, alerted_transactions, alerted_details, overall_mean, overall_sigma
+    return alerts, alerted_transactions, alerted_details, overall_median, overall_sigma
 
 
 def print_results(alerts, alerted_transactions, alerted_details):
@@ -164,8 +164,8 @@ def main():
     print()
     progress_bar(duration=PROGRESS_DURATION)
 
-    alerts, alerted_transactions, alerted_details, overall_mean, overall_sigma  = detect_suspicious_transactions(transactions, t)
-    threshold_amount = threshold_to_zscore(t, overall_mean, overall_sigma)
+    alerts, alerted_transactions, alerted_details, overall_median, overall_sigma  = detect_suspicious_transactions(transactions, t)
+    threshold_amount = threshold_to_zscore(t, overall_median, overall_sigma)
     show_graph(transactions, alerted_details, threshold_amount)
     print_results(alerts, alerted_transactions, alerted_details)
 
