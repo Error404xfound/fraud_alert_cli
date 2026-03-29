@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from utils import get_input, progress_bar
 
 
-RULE_THRESHOLD = 1000.0
+RULE_THRESHOLD = 1000.00
 WELCOME_BANNER_WIDTH = 60
 PROGRESS_DURATION = 1.6
 
@@ -14,7 +14,7 @@ def check_rule_based(amount):
     """Hard threshold check for obviously high transaction values."""
     return amount > RULE_THRESHOLD
 
-def show_graph(transactions, alerted_details):
+def show_graph(transactions, alerted_details, threshold_amount):
     """Generate a scatter plot of transactions with alerts highlighted."""
     plt.figure(figsize=(10, 5))
     
@@ -30,7 +30,7 @@ def show_graph(transactions, alerted_details):
 
     # Add the Rule Threshold line
     plt.axhline(y=RULE_THRESHOLD, color='orange', linestyle='--', label='Rule Threshold')
-
+    plt.axhline(y=threshold_amount, color='purple', linestyle='--', label='Z-score Threshold')
     plt.title("Transaction Analysis Overview")
     plt.xlabel("Transaction Number")
     plt.ylabel("Amount ($)")
@@ -38,7 +38,11 @@ def show_graph(transactions, alerted_details):
     plt.grid(True, linestyle=':', alpha=0.6)
     plt.show()
 
-
+def threshold_to_zscore(threshold, overall_mean, overall_sigma):
+    """Convert a z-score threshold to the corresponding transaction amount."""
+    threshold_amount = overall_mean + threshold * overall_sigma
+    return threshold_amount     
+    
 def check_zscore(amount, mean, sigma, threshold):
     """Flag transactions whose z-score exceeds the selected sensitivity."""
     if sigma == 0:
@@ -108,7 +112,7 @@ def detect_suspicious_transactions(transactions, threshold):
             alerted_transactions.append(txn_number)
             alerted_details.append((txn_number, transaction, reasons))
 
-    return alerts, alerted_transactions, alerted_details
+    return alerts, alerted_transactions, alerted_details, overall_mean, overall_sigma
 
 
 def print_results(alerts, alerted_transactions, alerted_details):
@@ -160,8 +164,9 @@ def main():
     print()
     progress_bar(duration=PROGRESS_DURATION)
 
-    alerts, alerted_transactions, alerted_details = detect_suspicious_transactions(transactions, t)
-    show_graph(transactions, alerted_details)
+    alerts, alerted_transactions, alerted_details, overall_mean, overall_sigma  = detect_suspicious_transactions(transactions, t)
+    threshold_amount = threshold_to_zscore(t, overall_mean, overall_sigma)
+    show_graph(transactions, alerted_details, threshold_amount)
     print_results(alerts, alerted_transactions, alerted_details)
 
 
