@@ -9,20 +9,21 @@ from fraud_alert_cli.utils import (
 )
 
 
-RULE_THRESHOLD = 1000.00
+
 WELCOME_BANNER_WIDTH = 60
 PROGRESS_DURATION = 1.6
 Z_SCORE_SCALING_FACTOR = 0.6745
 
 
-def check_rule_based(amount: int | float) -> bool:
+def check_rule_based(amount: int | float, rule_threshold: int | float) -> bool:
     """Hard threshold check for obviously high transaction values."""
-    return amount > RULE_THRESHOLD
+    return amount > rule_threshold
 
 def show_graph(
     transactions: list[float],
     alerted_details: list[tuple[int, float, list[str | None]]],
     threshold_amount: float,
+    rule_threshold: int | float,
 ) -> None:
     """Generate a scatter plot of transactions with alerts highlighted."""
     plt.figure(figsize=(10, 5))
@@ -38,7 +39,7 @@ def show_graph(
         plt.scatter(alert_indices, alert_amounts, color='red', label='Suspicious')
 
     # Add the Rule Threshold line
-    plt.axhline(y=RULE_THRESHOLD, color='orange', linestyle='--', label='Rule Threshold')
+    plt.axhline(y=rule_threshold, color='orange', linestyle='--', label='Rule Threshold')
     plt.axhline(y=threshold_amount, color='purple', linestyle='--', label='Z-score Threshold')
     plt.title("Transaction Analysis Overview")
     plt.xlabel("Transaction Number")
@@ -74,6 +75,7 @@ def check_zscore(
 def detect_suspicious_transactions(
     transactions: list[float],
     threshold: int | float,
+    rule_threshold: int | float,
 ) -> tuple[int, list[int], list[tuple[int, float, list[str | None]]], float, float]:
     """Run the detection rules and return alert totals and details."""
     alerts = 0
@@ -88,8 +90,8 @@ def detect_suspicious_transactions(
     for i, transaction in enumerate(transactions):
         reasons: list[str | None] = []
 
-        if check_rule_based(transaction):
-            reasons.append(f"Rule: amount ({transaction:.2f}) > {RULE_THRESHOLD:.0f}")
+        if check_rule_based(transaction, rule_threshold):
+            reasons.append(f"Rule: amount ({transaction:.2f}) > {rule_threshold:.0f}")
 
         z_flagged, z_value, z_reason = check_zscore(transaction, overall_median, overall_mad, threshold)
         if z_flagged:
@@ -143,6 +145,14 @@ def main() -> None:
         "Please enter a whole number (e.g. 5).",
     )
 
+
+    r = prompt_positive_value(
+        "\nWhat is the hard rule threshold for this account? (e.g., 1000 for students, 5000 for businesses)\n"
+        "(Enter a number greater than 0) : ",
+        float,
+        "Please enter a valid amount (e.g. 1000.00).",
+    )
+
     s = prompt_positive_value(
         "\nHow sensitive should the alert be? "
         "(Recommended: 3.5 for strict, 10.0+ for massive spikes)\n"
@@ -156,10 +166,10 @@ def main() -> None:
     print()
     progress_bar(duration=PROGRESS_DURATION)
 
-    alerts, alerted_transactions, alerted_details, overall_median, overall_mad = detect_suspicious_transactions(transactions, s)
+    alerts, alerted_transactions, alerted_details, overall_median, overall_mad = detect_suspicious_transactions(transactions, s, r)
     threshold_amount = threshold_to_zscore(s, overall_median, overall_mad)
     print_results(alerts, alerted_transactions, alerted_details)
-    show_graph(transactions, alerted_details, threshold_amount)
+    show_graph(transactions, alerted_details, threshold_amount, r)
 
 if __name__ == "__main__":
     main()
