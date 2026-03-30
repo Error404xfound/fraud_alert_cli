@@ -2,7 +2,7 @@
 
 import statistics
 import matplotlib.pyplot as plt
-from utils import ( 
+from fraud_alert_cli.utils import (
     progress_bar, 
     prompt_positive_value, 
     prompt_transactions

@@ -1,5 +1,5 @@
 import pytest
-from utils import (
+from fraud_alert_cli.utils import (
     get_input, 
     progress_bar,
     prompt_positive_value,
@@ -40,7 +40,7 @@ def test_progress_bar_sleep_calls(monkeypatch):
     def fake_sleep(seconds):
         sleep_calls.append(seconds)
 
-    monkeypatch.setattr("utils.time.sleep", fake_sleep)
+    monkeypatch.setattr("fraud_alert_cli.utils.time.sleep", fake_sleep)
 
     duration = 0.5
     steps = 5

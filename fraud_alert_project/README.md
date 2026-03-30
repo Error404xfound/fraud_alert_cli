@@ -15,19 +15,21 @@ A Python command-line tool that checks transaction amounts and flags suspicious 
 - `fraud_alert.py` main CLI app and detection flow
 - `utils.py` shared input and terminal progress helpers
 
-## Requirements
-- Python 3.10+
-
-## Dependencies
-Install plotting support before running the app:
+## Installation
 
 ```bash
-pip install matplotlib
+pip install .
 ```
 
 ## Run Locally
 1. Open a terminal in this folder.
-2. Run:
+2. Run the installed CLI command:
+
+```bash
+fraud-alert
+```
+
+3. Fallback (original direct script run):
 
 ```bash
 python fraud_alert.py
@@ -45,6 +47,8 @@ Transactions: 100, 120, 140, 2200, 150
 ```
 
 ## Testing
+
+Run tests from the project root after installation.
 
 Run the fraud-alert test suite:
 

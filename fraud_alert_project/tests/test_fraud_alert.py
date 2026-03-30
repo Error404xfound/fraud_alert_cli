@@ -1,5 +1,5 @@
 import pytest
-from fraud_alert import (
+from fraud_alert_cli.fraud_alert import (
     check_rule_based, 
     check_zscore,
     detect_suspicious_transactions,
@@ -160,15 +160,15 @@ def test_show_graph_without_alert_points(monkeypatch):
     def fake_show():
         calls["show"] += 1
 
-    monkeypatch.setattr("fraud_alert.plt.figure", fake_figure)
-    monkeypatch.setattr("fraud_alert.plt.scatter", fake_scatter)
-    monkeypatch.setattr("fraud_alert.plt.axhline", fake_axhline)
-    monkeypatch.setattr("fraud_alert.plt.title", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr("fraud_alert.plt.xlabel", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr("fraud_alert.plt.ylabel", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr("fraud_alert.plt.legend", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr("fraud_alert.plt.grid", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr("fraud_alert.plt.show", fake_show)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.figure", fake_figure)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.scatter", fake_scatter)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.axhline", fake_axhline)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.title", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.xlabel", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.ylabel", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.legend", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.grid", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.show", fake_show)
 
     show_graph([100, 150, 200], [], 500)
 
@@ -187,15 +187,15 @@ def test_show_graph_with_alert_points(monkeypatch):
     def fake_show():
         calls["show"] += 1
 
-    monkeypatch.setattr("fraud_alert.plt.figure", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr("fraud_alert.plt.scatter", fake_scatter)
-    monkeypatch.setattr("fraud_alert.plt.axhline", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr("fraud_alert.plt.title", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr("fraud_alert.plt.xlabel", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr("fraud_alert.plt.ylabel", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr("fraud_alert.plt.legend", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr("fraud_alert.plt.grid", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr("fraud_alert.plt.show", fake_show)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.figure", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.scatter", fake_scatter)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.axhline", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.title", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.xlabel", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.ylabel", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.legend", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.grid", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.show", fake_show)
 
     alerted_details = [
         (3, 2000.00, ["Rule: amount (2000.00) > 1000"]),
@@ -246,13 +246,13 @@ def test_main_orchestrates_dependencies(monkeypatch, capsys):
     def fake_show_graph(transactions, alerted_details, threshold_amount):
         calls["show_graph"].append((transactions, alerted_details, threshold_amount))
 
-    monkeypatch.setattr("fraud_alert.prompt_positive_value", fake_prompt_positive_value)
-    monkeypatch.setattr("fraud_alert.prompt_transactions", fake_prompt_transactions)
-    monkeypatch.setattr("fraud_alert.progress_bar", fake_progress_bar)
-    monkeypatch.setattr("fraud_alert.detect_suspicious_transactions", fake_detect)
-    monkeypatch.setattr("fraud_alert.threshold_to_zscore", fake_threshold_to_zscore)
-    monkeypatch.setattr("fraud_alert.print_results", fake_print_results)
-    monkeypatch.setattr("fraud_alert.show_graph", fake_show_graph)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.prompt_positive_value", fake_prompt_positive_value)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.prompt_transactions", fake_prompt_transactions)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.progress_bar", fake_progress_bar)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.detect_suspicious_transactions", fake_detect)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.threshold_to_zscore", fake_threshold_to_zscore)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.print_results", fake_print_results)
+    monkeypatch.setattr("fraud_alert_cli.fraud_alert.show_graph", fake_show_graph)
 
     main()
     captured = capsys.readouterr()
