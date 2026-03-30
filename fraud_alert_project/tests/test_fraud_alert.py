@@ -11,23 +11,23 @@ from fraud_alert_cli.fraud_alert import (
 
 # Test cases for check_rule_based
 def test_check_rule_based_below_threshold():
-    assert not check_rule_based(999.99)
+    assert not check_rule_based(999.99, 1000.00)
 
 
 def test_check_rule_based_at_threshold():
-    assert not check_rule_based(1000.00)
+    assert not check_rule_based(1000.00, 1000.00)
 
 
 def test_check_rule_based_above_threshold():
-    assert check_rule_based(1000.01)
+    assert check_rule_based(1000.01, 1000.00)
 
 
 def test_check_rule_based_accepts_float_input():
-    assert check_rule_based(1500.75)
+    assert check_rule_based(1500.75, 1000.00)
 
 
 def test_check_rule_based_accepts_integer_input():
-    assert check_rule_based(2000)
+    assert check_rule_based(2000, 1000.00)
 
 
 # Test cases for threshold_to_zscore
@@ -75,7 +75,7 @@ def test_check_zscore_zero_mad():
 
 # Test cases for detect_suspicious_transactions
 def test_detect_suspicious_transactions_no_alerts():
-    alerts, alerted_transactions, alerted_details, median, mad = detect_suspicious_transactions([100, 150, 200], 3)
+    alerts, alerted_transactions, alerted_details, median, mad = detect_suspicious_transactions([100, 150, 200], 3, 1000.00)
     assert alerts == 0
     assert alerted_transactions == []
     assert alerted_details == []
@@ -84,7 +84,7 @@ def test_detect_suspicious_transactions_no_alerts():
 
 
 def test_detect_suspicious_transactions_rule_only_alert():
-    alerts, alerted_transactions, alerted_details, _, _ = detect_suspicious_transactions([100, 150, 2000], 100)
+    alerts, alerted_transactions, alerted_details, _, _ = detect_suspicious_transactions([100, 150, 2000], 100, 1000.00)
     assert alerts == 1
     assert alerted_transactions == [3]
     reasons = alerted_details[0][2]
@@ -93,7 +93,7 @@ def test_detect_suspicious_transactions_rule_only_alert():
 
 
 def test_detect_suspicious_transactions_zscore_only_alert():
-    alerts, alerted_transactions, alerted_details, _, _ = detect_suspicious_transactions([100, 150, 300], 1)
+    alerts, alerted_transactions, alerted_details, _, _ = detect_suspicious_transactions([100, 150, 300], 1, 10000.00)
     assert alerts == 1
     assert alerted_transactions == [3]
     reasons = alerted_details[0][2]
@@ -102,7 +102,7 @@ def test_detect_suspicious_transactions_zscore_only_alert():
 
 
 def test_detect_suspicious_transactions_zero_mad():
-    alerts, alerted_transactions, alerted_details, median, mad = detect_suspicious_transactions([100, 100, 100], 1)
+    alerts, alerted_transactions, alerted_details, median, mad = detect_suspicious_transactions([100, 100, 100], 1, 1000.00)
     assert alerts == 0
     assert alerted_transactions == []
     assert alerted_details == []
@@ -111,7 +111,7 @@ def test_detect_suspicious_transactions_zero_mad():
 
 
 def test_detect_suspicious_transactions_returns_1_indexed_transaction_numbers():
-    alerts, alerted_transactions, alerted_details, _, _ = detect_suspicious_transactions([100, 150, 2000, 2500], 3)
+    alerts, alerted_transactions, alerted_details, _, _ = detect_suspicious_transactions([100, 150, 2000, 2500], 3, 1000.00)
     assert alerts == 2
     assert alerted_transactions == [3, 4]
     assert alerted_details[0][0] == 3
@@ -170,7 +170,7 @@ def test_show_graph_without_alert_points(monkeypatch):
     monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.grid", lambda *_args, **_kwargs: None)
     monkeypatch.setattr("fraud_alert_cli.fraud_alert.plt.show", fake_show)
 
-    show_graph([100, 150, 200], [], 500)
+    show_graph([100, 150, 200], [], 500, 1000.00)
 
     assert calls["figure"] == 1
     assert calls["scatter"] == 1
@@ -201,7 +201,7 @@ def test_show_graph_with_alert_points(monkeypatch):
         (3, 2000.00, ["Rule: amount (2000.00) > 1000"]),
         (4, 2500.00, ["Rule: amount (2500.00) > 1000"]),
     ]
-    show_graph([100, 150, 2000, 2500], alerted_details, 1200)
+    show_graph([100, 150, 2000, 2500], alerted_details, 1200, 1000.00)
 
     assert calls["scatter"] == 2
     assert calls["show"] == 1
@@ -219,7 +219,7 @@ def test_main_orchestrates_dependencies(monkeypatch, capsys):
         "show_graph": [],
     }
 
-    values = iter([5, 3.5])
+    values = iter([5, 1000.0, 3.5])
 
     def fake_prompt_positive_value(prompt, cast_type, invalid_type_message):
         calls["prompt_positive_value"].append((prompt, cast_type, invalid_type_message))
@@ -232,8 +232,8 @@ def test_main_orchestrates_dependencies(monkeypatch, capsys):
     def fake_progress_bar(duration=3.0, steps=50):
         calls["progress_bar"] += 1
 
-    def fake_detect(transactions, threshold):
-        calls["detect"].append((transactions, threshold))
+    def fake_detect(transactions, threshold, rule_threshold):
+        calls["detect"].append((transactions, threshold, rule_threshold))
         return 1, [3], [(3, 2000.0, ["Rule: amount (2000.00) > 1000"])], 150, 50
 
     def fake_threshold_to_zscore(threshold, median, mad):
@@ -243,8 +243,8 @@ def test_main_orchestrates_dependencies(monkeypatch, capsys):
     def fake_print_results(alerts, alerted_transactions, alerted_details):
         calls["print_results"].append((alerts, alerted_transactions, alerted_details))
 
-    def fake_show_graph(transactions, alerted_details, threshold_amount):
-        calls["show_graph"].append((transactions, alerted_details, threshold_amount))
+    def fake_show_graph(transactions, alerted_details, threshold_amount, rule_threshold):
+        calls["show_graph"].append((transactions, alerted_details, threshold_amount, rule_threshold))
 
     monkeypatch.setattr("fraud_alert_cli.fraud_alert.prompt_positive_value", fake_prompt_positive_value)
     monkeypatch.setattr("fraud_alert_cli.fraud_alert.prompt_transactions", fake_prompt_transactions)
@@ -258,13 +258,13 @@ def test_main_orchestrates_dependencies(monkeypatch, capsys):
     captured = capsys.readouterr()
 
     assert "Welcome to the Transaction Checker" in captured.out
-    assert len(calls["prompt_positive_value"]) == 2
+    assert len(calls["prompt_positive_value"]) == 3
     assert calls["prompt_transactions"] == [5]
     assert calls["progress_bar"] == 1
-    assert calls["detect"] == [([100, 150, 2000, 150, 100], 3.5)]
+    assert calls["detect"] == [([100, 150, 2000, 150, 100], 3.5, 1000.0)]
     assert calls["threshold"] == [(3.5, 150, 50)]
     assert calls["print_results"] == [(1, [3], [(3, 2000.0, ["Rule: amount (2000.00) > 1000"])])]
-    assert calls["show_graph"] == [([100, 150, 2000, 150, 100], [(3, 2000.0, ["Rule: amount (2000.00) > 1000"])], 1172.35)]
+    assert calls["show_graph"] == [([100, 150, 2000, 150, 100], [(3, 2000.0, ["Rule: amount (2000.00) > 1000"])], 1172.35, 1000.0)]
 
 
 
