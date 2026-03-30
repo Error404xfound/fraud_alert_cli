@@ -160,6 +160,5 @@ def main() -> None:
     print_results(alerts, alerted_transactions, alerted_details)
     show_graph(transactions, alerted_details, threshold_amount)
 
-
 if __name__ == "__main__":
     main()

@@ -3,7 +3,9 @@
 import random
 import string
 import time
+from typing import TypeVar
 
+T = TypeVar('T', int, float)
 
 def get_input(prompt: str) -> str:
     """Read user input and handle Ctrl+C gracefully."""
@@ -37,9 +39,9 @@ def progress_bar(duration: float = 3.0, steps: int = 50) -> None:
 
 def prompt_positive_value(
     prompt: str,
-    cast_type: type[int] | type[float],
+    cast_type: type[T],
     invalid_type_message: str,
-) -> int | float:
+) -> T:
     """Prompt until a positive numeric value is provided."""
     while True:
         try:
@@ -50,7 +52,7 @@ def prompt_positive_value(
         except ValueError:
             print(invalid_type_message)
 
-def prompt_transactions(expected_count:int | float) -> list[float]:
+def prompt_transactions(expected_count: int) -> list[float]:
     """Prompt until the exact expected number of transaction values is entered."""
     print(f"\nEnter {expected_count} transaction amounts, separated by commas.")
     print("Example: 100.00, 200.50, 3000.00, 150.00, 175.00")
