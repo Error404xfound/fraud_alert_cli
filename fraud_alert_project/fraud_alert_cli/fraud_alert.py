@@ -14,11 +14,15 @@ WELCOME_BANNER_WIDTH = 60
 PROGRESS_DURATION = 1.6
 
 
-def check_rule_based(amount):
+def check_rule_based(amount: int | float) -> bool:
     """Hard threshold check for obviously high transaction values."""
     return amount > RULE_THRESHOLD
 
-def show_graph(transactions, alerted_details, threshold_amount):
+def show_graph(
+    transactions: list[float],
+    alerted_details: list[tuple[int, float, list[str | None]]],
+    threshold_amount: float,
+) -> None:
     """Generate a scatter plot of transactions with alerts highlighted."""
     plt.figure(figsize=(10, 5))
     
@@ -42,7 +46,7 @@ def show_graph(transactions, alerted_details, threshold_amount):
     plt.grid(True, linestyle=':', alpha=0.6)
     plt.show()
 
-def threshold_to_zscore(threshold, overall_median, overall_mad):
+def threshold_to_zscore(threshold: int | float, overall_median: float, overall_mad: float) -> float:
     """Convert a robust z-score threshold to the corresponding transaction amount."""
     if overall_mad == 0:
         return overall_median + threshold # If no variability, just add the threshold to the median.
@@ -50,7 +54,12 @@ def threshold_to_zscore(threshold, overall_median, overall_mad):
     threshold_amount = overall_median + ((threshold * overall_mad) / 0.6745)
     return threshold_amount 
     
-def check_zscore(amount, median, mad, threshold):
+def check_zscore(
+    amount: int | float,
+    median: float,
+    mad: float,
+    threshold: int | float,
+) -> tuple[bool, float | None, str | None]:
     """Flag transactions whose z-score exceeds the selected sensitivity."""
     if mad == 0:
         return False, None, None 
@@ -61,11 +70,14 @@ def check_zscore(amount, median, mad, threshold):
 
     return False, z, None
 
-def detect_suspicious_transactions(transactions, threshold):
+def detect_suspicious_transactions(
+    transactions: list[float],
+    threshold: int | float,
+) -> tuple[int, list[int], list[tuple[int, float, list[str | None]]], float, float]:
     """Run the detection rules and return alert totals and details."""
     alerts = 0
-    alerted_transactions = []
-    alerted_details = []
+    alerted_transactions: list[int] = []
+    alerted_details: list[tuple[int, float, list[str | None]]] = []
 
     # Global baseline for z-score checks.
     overall_median = statistics.median(transactions)
@@ -73,7 +85,7 @@ def detect_suspicious_transactions(transactions, threshold):
     overall_mad = statistics.median(deviations)
 
     for i, transaction in enumerate(transactions):
-        reasons = []
+        reasons: list[str | None] = []
 
         if check_rule_based(transaction):
             reasons.append(f"Rule: amount ({transaction:.2f}) > {RULE_THRESHOLD:.0f}")
@@ -90,7 +102,11 @@ def detect_suspicious_transactions(transactions, threshold):
 
     return alerts, alerted_transactions, alerted_details, overall_median, overall_mad
 
-def print_results(alerts, alerted_transactions, alerted_details):
+def print_results(
+    alerts: int,
+    alerted_transactions: list[int],
+    alerted_details: list[tuple[int, float, list[str | None]]],
+) -> None:
     """Print the final report in the existing terminal UI format."""
     print("\n" + "=" * WELCOME_BANNER_WIDTH)
     print(f"\nTotal suspicious transactions detected: {alerts}")
@@ -113,7 +129,7 @@ def print_results(alerts, alerted_transactions, alerted_details):
     print("\n" + "=" * WELCOME_BANNER_WIDTH)
 
 
-def main():
+def main() -> None:
     """Drive input collection, analysis, and final reporting."""
     print("=" * WELCOME_BANNER_WIDTH)
     print("   Welcome to the Transaction Checker      ")

@@ -5,7 +5,7 @@ import string
 import time
 
 
-def get_input(prompt):
+def get_input(prompt: str) -> str:
     """Read user input and handle Ctrl+C gracefully."""
     while True:
         try:
@@ -14,7 +14,7 @@ def get_input(prompt):
             print("\nProgram cancelled.")
             exit()
 
-def progress_bar(duration=3.0, steps=50):
+def progress_bar(duration: float = 3.0, steps: int = 50) -> None:
     """Render the animated analysis bar used in terminal tools."""
     bar_width = 44
 
@@ -35,7 +35,11 @@ def progress_bar(duration=3.0, steps=50):
     print("\r Analysing transactions... 100% ")
     print(f"[{'=' * bar_width}]")
 
-def prompt_positive_value(prompt, cast_type, invalid_type_message):
+def prompt_positive_value(
+    prompt: str,
+    cast_type: type[int] | type[float],
+    invalid_type_message: str,
+) -> int | float:
     """Prompt until a positive numeric value is provided."""
     while True:
         try:
@@ -46,7 +50,7 @@ def prompt_positive_value(prompt, cast_type, invalid_type_message):
         except ValueError:
             print(invalid_type_message)
 
-def prompt_transactions(expected_count):
+def prompt_transactions(expected_count:int | float) -> list[float]:
     """Prompt until the exact expected number of transaction values is entered."""
     print(f"\nEnter {expected_count} transaction amounts, separated by commas.")
     print("Example: 100.00, 200.50, 3000.00, 150.00, 175.00")
